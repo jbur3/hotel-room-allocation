@@ -23,14 +23,33 @@ public class BookingService {
         int overbookedEconomyGuests = potentialEconomyGuests.size() - availableEconomyRooms;
         int availablePremiumSpace = availablePremiumRooms - potentialPremiumGuests.size();
 
-        if (overbookedEconomyGuests > 0 && availablePremiumSpace > 0) {
-            int numberOfEconomyGuestsToUpgrade = Math.min(overbookedEconomyGuests, availablePremiumSpace);
-            List<Double> economyGuestsToUpgrade = new ArrayList<>();
-            for (int i = 0; i < numberOfEconomyGuestsToUpgrade; i++) {
-                economyGuestsToUpgrade.add(potentialEconomyGuests.get(i));
+        if (availablePremiumSpace < 0) {
+            List<Double> premiumGuestsToAllocate = new ArrayList<>();
+            for (int i = 0; i < availablePremiumRooms; i++) {
+                premiumGuestsToAllocate.add(potentialPremiumGuests.get(i));
             }
-            potentialPremiumGuests.addAll(economyGuestsToUpgrade);
-            potentialEconomyGuests.removeAll(economyGuestsToUpgrade);
+            potentialPremiumGuests = premiumGuestsToAllocate;
+        }
+
+        if (overbookedEconomyGuests > 0) {
+            if (availablePremiumSpace > 0) {
+                int numberOfEconomyGuestsToUpgrade = Math.min(overbookedEconomyGuests, availablePremiumSpace);
+                List<Double> economyGuestsToUpgrade = new ArrayList<>();
+                for (int i = 0; i < numberOfEconomyGuestsToUpgrade; i++) {
+                    economyGuestsToUpgrade.add(potentialEconomyGuests.get(i));
+                }
+                potentialPremiumGuests.addAll(economyGuestsToUpgrade);
+                potentialEconomyGuests.removeAll(economyGuestsToUpgrade);
+            }
+            else {
+                List<Double> economyGuestsNotToAllocate = new ArrayList<>();
+                for (int i = potentialEconomyGuests.size() - 1; i >= 0 && overbookedEconomyGuests > 0; i--) {
+                    economyGuestsNotToAllocate.add(potentialEconomyGuests.get(i));
+                    overbookedEconomyGuests--;
+                }
+                potentialEconomyGuests.removeAll(economyGuestsNotToAllocate);
+            }
+
         }
 
         double revenueEconomy = calculateRevenue(potentialEconomyGuests);
