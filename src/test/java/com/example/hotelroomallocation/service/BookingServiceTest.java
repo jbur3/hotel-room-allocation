@@ -1,5 +1,6 @@
 package com.example.hotelroomallocation.service;
 
+import com.example.hotelroomallocation.exception.HotelRoomAllocationException;
 import com.example.hotelroomallocation.model.BookingRequest;
 import com.example.hotelroomallocation.model.BookingResponse;
 import org.junit.jupiter.api.BeforeEach;
@@ -8,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class BookingServiceTest {
 
@@ -86,4 +88,82 @@ public class BookingServiceTest {
         assertThat(bookingResponse.getRevenueEconomy()).isEqualTo(189.99);
     }
 
+    @Test
+    void whenNullBookingRequestIsReceived_HotelRoomAllocationExceptionIsThrown() {
+        // GIVEN
+
+        // WHEN
+        Exception exception = assertThrows(HotelRoomAllocationException.class, () -> bookingService.optimizeOccupancy(null));
+
+        // THEN
+        assertThat(exception.getMessage()).isEqualTo("Booking request cannot be null");
+    }
+
+    @Test
+    void whenBookingRequestWithNegativeEconomyRoomsIsReceived_HotelRoomAllocationExceptionIsThrown() {
+        // GIVEN
+        bookingRequest.setPremiumRooms(2);
+        bookingRequest.setEconomyRooms(-1);
+
+        // WHEN
+        Exception exception = assertThrows(HotelRoomAllocationException.class, () -> bookingService.optimizeOccupancy(bookingRequest));
+
+        // THEN
+        assertThat(exception.getMessage()).isEqualTo("Economy rooms number cannot be negative");
+    }
+
+    @Test
+    void whenBookingRequestWithNegativePremiumRoomsIsReceived_HotelRoomAllocationExceptionIsThrown() {
+        // GIVEN
+        bookingRequest.setPremiumRooms(-1);
+        bookingRequest.setEconomyRooms(2);
+
+        // WHEN
+        Exception exception = assertThrows(HotelRoomAllocationException.class, () -> bookingService.optimizeOccupancy(bookingRequest));
+
+        // THEN
+        assertThat(exception.getMessage()).isEqualTo("Premium rooms number cannot be negative");
+    }
+
+    @Test
+    void whenBookingRequestWithNullPotentialGuestsListIsReceived_HotelRoomAllocationExceptionIsThrown() {
+        // GIVEN
+        bookingRequest.setPremiumRooms(1);
+        bookingRequest.setEconomyRooms(2);
+        bookingRequest.setPotentialGuests(null);
+
+        // WHEN
+        Exception exception = assertThrows(HotelRoomAllocationException.class, () -> bookingService.optimizeOccupancy(bookingRequest));
+
+        // THEN
+        assertThat(exception.getMessage()).isEqualTo("List of potential guests cannot be null");
+    }
+
+    @Test
+    void whenBookingRequestIsReceived_andOneOfPotentialGuestsIsNull_HotelRoomAllocationExceptionIsThrown() {
+        // GIVEN
+        bookingRequest.setPremiumRooms(1);
+        bookingRequest.setEconomyRooms(2);
+        bookingRequest.setPotentialGuests(Arrays.asList(24.00, 134.99, null));
+
+        // WHEN
+        Exception exception = assertThrows(HotelRoomAllocationException.class, () -> bookingService.optimizeOccupancy(bookingRequest));
+
+        // THEN
+        assertThat(exception.getMessage()).isEqualTo("Amount which guest is willing to pay cannot be null or negative");
+    }
+
+    @Test
+    void whenBookingRequestIsReceived_andOneOfPotentialGuestsIsNegative_HotelRoomAllocationExceptionIsThrown() {
+        // GIVEN
+        bookingRequest.setPremiumRooms(1);
+        bookingRequest.setEconomyRooms(2);
+        bookingRequest.setPotentialGuests(Arrays.asList(24.00, 134.99, -16.00));
+
+        // WHEN
+        Exception exception = assertThrows(HotelRoomAllocationException.class, () -> bookingService.optimizeOccupancy(bookingRequest));
+
+        // THEN
+        assertThat(exception.getMessage()).isEqualTo("Amount which guest is willing to pay cannot be null or negative");
+    }
 }

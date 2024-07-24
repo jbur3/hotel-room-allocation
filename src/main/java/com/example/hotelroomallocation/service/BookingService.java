@@ -1,5 +1,6 @@
 package com.example.hotelroomallocation.service;
 
+import com.example.hotelroomallocation.exception.HotelRoomAllocationException;
 import com.example.hotelroomallocation.model.BookingRequest;
 import com.example.hotelroomallocation.model.BookingResponse;
 import org.springframework.stereotype.Service;
@@ -13,6 +14,8 @@ import java.util.function.Predicate;
 public class BookingService {
 
     public BookingResponse optimizeOccupancy(BookingRequest bookingRequest) {
+        validateBookingRequest(bookingRequest);
+
         int availableEconomyRooms = bookingRequest.getEconomyRooms();
         int availablePremiumRooms = bookingRequest.getPremiumRooms();
         List<Double> potentialGuests =  bookingRequest.getPotentialGuests();
@@ -27,6 +30,25 @@ public class BookingService {
         double revenuePremium = calculateRevenue(premiumGuestsToAllocate);
 
         return new BookingResponse(premiumGuestsToAllocate.size(), revenuePremium, economyGuestsToAllocate.size(), revenueEconomy);
+    }
+
+    private void validateBookingRequest(BookingRequest bookingRequest) {
+        if (bookingRequest == null)
+            throw new HotelRoomAllocationException("Booking request cannot be null");
+
+        if (bookingRequest.getEconomyRooms() < 0)
+            throw new HotelRoomAllocationException("Economy rooms number cannot be negative");
+
+        if (bookingRequest.getPremiumRooms() < 0)
+            throw new HotelRoomAllocationException("Premium rooms number cannot be negative");
+
+        if (bookingRequest.getPotentialGuests() == null)
+            throw new HotelRoomAllocationException("List of potential guests cannot be null");
+
+        for (Double amount : bookingRequest.getPotentialGuests()) {
+            if (amount == null || amount < 0)
+                throw new HotelRoomAllocationException("Amount which guest is willing to pay cannot be null or negative");
+        }
     }
 
     private List<Double> filterGuests(List<Double> potentialGuests, Predicate<Double> predicate) {
@@ -44,7 +66,7 @@ public class BookingService {
         return amount -> amount >= 100.00;
     }
 
-    private List<Double> allocatePremiumGuests(List<Double> potentialPremiumGuests, int availablePremiumRooms ) {
+    private List<Double> allocatePremiumGuests(List<Double> potentialPremiumGuests, int availablePremiumRooms) {
         if (availablePremiumRooms >= potentialPremiumGuests.size())
             return potentialPremiumGuests;
 
