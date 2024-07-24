@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 @Service
 public class BookingService {
@@ -55,7 +56,7 @@ public class BookingService {
         return potentialGuests.stream()
                 .filter(predicate)
                 .sorted(Comparator.reverseOrder())
-                .toList();
+                .collect(Collectors.toList());
     }
 
     private Predicate<Double> isEconomyGuest() {
