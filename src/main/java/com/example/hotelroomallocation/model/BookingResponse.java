@@ -7,6 +7,13 @@ public class BookingResponse {
     private int usageEconomy;
     private double revenueEconomy;
 
+    public BookingResponse(int usagePremium, double revenuePremium, int usageEconomy, double revenueEconomy) {
+        this.usagePremium = usagePremium;
+        this.revenuePremium = revenuePremium;
+        this.usageEconomy = usageEconomy;
+        this.revenueEconomy = revenueEconomy;
+    }
+
     public int getUsagePremium() {
         return usagePremium;
     }

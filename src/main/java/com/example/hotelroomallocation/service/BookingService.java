@@ -37,14 +37,7 @@ public class BookingService {
 
         double revenuePremium = calculateRevenue(potentialPremiumGuests);
 
-        BookingResponse bookingResponse = new BookingResponse();
-
-        bookingResponse.setUsagePremium(potentialPremiumGuests.size());
-        bookingResponse.setRevenuePremium(revenuePremium);
-        bookingResponse.setUsageEconomy(potentialEconomyGuests.size());
-        bookingResponse.setRevenueEconomy(revenueEconomy);
-
-        return bookingResponse;
+        return new BookingResponse(potentialPremiumGuests.size(), revenuePremium, potentialEconomyGuests.size(), revenueEconomy);
     }
 
     private List<Double> filterGuests(List<Double> potentialGuests, Predicate<Double> predicate) {
