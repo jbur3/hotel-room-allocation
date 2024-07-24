@@ -85,4 +85,5 @@ public class BookingServiceTest {
         assertThat(bookingResponse.getUsageEconomy()).isEqualTo(4);
         assertThat(bookingResponse.getRevenueEconomy()).isEqualTo(189.99);
     }
+
 }

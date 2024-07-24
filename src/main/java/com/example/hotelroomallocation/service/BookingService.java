@@ -17,46 +17,16 @@ public class BookingService {
         int availablePremiumRooms = bookingRequest.getPremiumRooms();
         List<Double> potentialGuests =  bookingRequest.getPotentialGuests();
 
-        List<Double> potentialEconomyGuests = new ArrayList<>(filterGuests(potentialGuests, isWillingToPayAtLeast(100.00).negate()));
-        List<Double> potentialPremiumGuests = new ArrayList<>(filterGuests(potentialGuests, isWillingToPayAtLeast(100.00)));
+        List<Double> potentialEconomyGuests = new ArrayList<>(filterGuests(potentialGuests, isEconomyGuest()));
+        List<Double> potentialPremiumGuests = new ArrayList<>(filterGuests(potentialGuests, isPremiumGuest()));
 
-        int overbookedEconomyGuests = potentialEconomyGuests.size() - availableEconomyRooms;
-        int availablePremiumSpace = availablePremiumRooms - potentialPremiumGuests.size();
+        List<Double> premiumGuestsToAllocate = allocatePremiumGuests(potentialPremiumGuests, availablePremiumRooms);
+        List<Double> economyGuestsToAllocate = allocateAndUpgradeEconomyGuests(potentialEconomyGuests, potentialPremiumGuests, availableEconomyRooms, availablePremiumRooms - premiumGuestsToAllocate.size());
 
-        if (availablePremiumSpace < 0) {
-            List<Double> premiumGuestsToAllocate = new ArrayList<>();
-            for (int i = 0; i < availablePremiumRooms; i++) {
-                premiumGuestsToAllocate.add(potentialPremiumGuests.get(i));
-            }
-            potentialPremiumGuests = premiumGuestsToAllocate;
-        }
+        double revenueEconomy = calculateRevenue(economyGuestsToAllocate);
+        double revenuePremium = calculateRevenue(premiumGuestsToAllocate);
 
-        if (overbookedEconomyGuests > 0) {
-            if (availablePremiumSpace > 0) {
-                int numberOfEconomyGuestsToUpgrade = Math.min(overbookedEconomyGuests, availablePremiumSpace);
-                List<Double> economyGuestsToUpgrade = new ArrayList<>();
-                for (int i = 0; i < numberOfEconomyGuestsToUpgrade; i++) {
-                    economyGuestsToUpgrade.add(potentialEconomyGuests.get(i));
-                }
-                potentialPremiumGuests.addAll(economyGuestsToUpgrade);
-                potentialEconomyGuests.removeAll(economyGuestsToUpgrade);
-            }
-            else {
-                List<Double> economyGuestsNotToAllocate = new ArrayList<>();
-                for (int i = potentialEconomyGuests.size() - 1; i >= 0 && overbookedEconomyGuests > 0; i--) {
-                    economyGuestsNotToAllocate.add(potentialEconomyGuests.get(i));
-                    overbookedEconomyGuests--;
-                }
-                potentialEconomyGuests.removeAll(economyGuestsNotToAllocate);
-            }
-
-        }
-
-        double revenueEconomy = calculateRevenue(potentialEconomyGuests);
-
-        double revenuePremium = calculateRevenue(potentialPremiumGuests);
-
-        return new BookingResponse(potentialPremiumGuests.size(), revenuePremium, potentialEconomyGuests.size(), revenueEconomy);
+        return new BookingResponse(premiumGuestsToAllocate.size(), revenuePremium, economyGuestsToAllocate.size(), revenueEconomy);
     }
 
     private List<Double> filterGuests(List<Double> potentialGuests, Predicate<Double> predicate) {
@@ -66,8 +36,48 @@ public class BookingService {
                 .toList();
     }
 
-    private Predicate<Double> isWillingToPayAtLeast(double maxAmount) {
-        return amount -> amount >= maxAmount;
+    private Predicate<Double> isEconomyGuest() {
+        return amount -> amount < 100.00;
+    }
+
+    private Predicate<Double> isPremiumGuest() {
+        return amount -> amount >= 100.00;
+    }
+
+    private List<Double> allocatePremiumGuests(List<Double> potentialPremiumGuests, int availablePremiumRooms ) {
+        if (availablePremiumRooms >= potentialPremiumGuests.size())
+            return potentialPremiumGuests;
+
+        List<Double> premiumGuestsToAllocate = new ArrayList<>();
+        for (int i = 0; i < availablePremiumRooms; i++) {
+            premiumGuestsToAllocate.add(potentialPremiumGuests.get(i));
+        }
+        return premiumGuestsToAllocate;
+    }
+
+    private List<Double> allocateAndUpgradeEconomyGuests(List<Double> potentialEconomyGuests, List<Double> premiumGuestsToAllocate, int availableEconomyRooms, int availablePremiumRooms) {
+        if (availableEconomyRooms >= potentialEconomyGuests.size())
+            return potentialEconomyGuests;
+
+        List<Double> economyGuestsToAllocate = new ArrayList<>();
+
+        if (availablePremiumRooms > 0) {
+            int numberOfEconomyGuestsToUpgrade = Math.min(potentialEconomyGuests.size() - availableEconomyRooms, availablePremiumRooms);
+            for (int i = numberOfEconomyGuestsToUpgrade; i < potentialEconomyGuests.size(); i++) {
+                economyGuestsToAllocate.add(potentialEconomyGuests.get(i));
+            }
+            for (int i = 0; i < numberOfEconomyGuestsToUpgrade; i++) {
+                premiumGuestsToAllocate.add(potentialEconomyGuests.get(i));
+            }
+        }
+        else {
+            int numberOfEconomyGuestsNotToAllocate = potentialEconomyGuests.size() - availableEconomyRooms;
+            for (int i = 0; i < potentialEconomyGuests.size() - numberOfEconomyGuestsNotToAllocate; i++) {
+                economyGuestsToAllocate.add(potentialEconomyGuests.get(i));
+            }
+        }
+
+        return economyGuestsToAllocate;
     }
 
     private double calculateRevenue(List<Double> guests) {
@@ -75,5 +85,4 @@ public class BookingService {
                 .mapToDouble(Double::doubleValue)
                 .sum();
     }
-
 }
