@@ -15,7 +15,10 @@ The Hotel Room Allocation is a simple API designed to optimize the allocation of
 - Processes HTTP requests and enables communication with the application.
 
 #### BookingService.class
-- Provides business logic for allocating guests and calculating biggest revenue. 
+- Provides business logic for allocating guests and calculating biggest revenue.
+
+#### BookingRequestValidator.class
+- Provides method to validate booking request.
 
 #### BookingRequest.class
 - Represents a received request.
@@ -40,7 +43,7 @@ The Hotel Room Allocation is a simple API designed to optimize the allocation of
 git clone https://github.com/jbur3/hotel-room-allocation.git
 ```
 
-2. Go to ```HotelRoomAllocation/start-script``` where the ```run.sh``` script is stored.
+2. Go to ```HotelRoomAllocation/start-script``` directory where the ```run.sh``` script is stored.
 
 3. Run ```./run.sh``` command.
 
