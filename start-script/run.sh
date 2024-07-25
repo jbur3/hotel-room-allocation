@@ -1,9 +1,16 @@
 #!/usr/bin/env sh
 
-JAR_PATH=build/libs/
+JAR_PATH=../build/libs/
 GRADLE_WRAPPER_PATH=../
+JAR_NAME=HotelRoomAllocation.jar
 
-cd $GRADLE_WRAPPER_PATH
-./gradlew clean build
+if [ ! -f "$JAR_PATH/$JAR_NAME" ]; then
+  echo "JAR does not exist. Building project..."
+  cd $GRADLE_WRAPPER_PATH
+  ./gradlew clean build
+  JAR_PATH=build/libs/
+fi
+
+echo "Starting HotelRoomAllocation..."
 cd $JAR_PATH
-java -jar HotelRoomAllocation-0.0.1-SNAPSHOT.jar
+java -jar $JAR_NAME

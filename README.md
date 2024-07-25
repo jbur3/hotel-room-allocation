@@ -40,14 +40,9 @@ The Hotel Room Allocation is a simple API designed to optimize the allocation of
 git clone https://github.com/jbur3/hotel-room-allocation.git
 ```
 
-2. Build the project:
-```java
-gradle clean build
-```
+2. Go to ```HotelRoomAllocation/start-script``` where the ```run.sh``` script is stored.
 
-3. Go to ```HotelRoomAllocation/start-script``` where the ```run.sh``` script is stored.
-
-4. Run ```./run.sh``` command.
+3. Run ```./run.sh``` command.
 
 ## Usage
 The HotelRoomAllocation API can be tested with tools like POSTMAN.
